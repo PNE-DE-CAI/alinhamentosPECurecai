@@ -1,1 +1,1294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0A4179">
+<title>Agenda Semanal PEC · URE Caieiras 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --sp-preto:#111;--sp-branco:#fff;--sp-vermelho:#CE1126;--sp-vermelho-esc:#A00D1E;
+  --azul-900:#05223F;--azul-800:#072F57;--azul-700:#0A4179;--azul-600:#0E5499;
+  --azul-500:#146BB8;--azul-400:#3D8BD4;--azul-200:#BBD7F0;--azul-100:#E3EFFA;--azul-050:#F1F7FD;
+  --cinza-900:#1A1D21;--cinza-700:#454B54;--cinza-600:#667085;--cinza-400:#98A2B3;
+  --cinza-300:#D0D5DD;--cinza-200:#E4E7EC;--cinza-100:#F2F4F7;--cinza-050:#F8FAFC;
+  --verde:#067647;--verde-bg:#DCFCE7;--ambar:#B45309;--ambar-bg:#FEF3C7;
+  --vermelho:#B42318;--vermelho-bg:#FEE4E2;
+  --bg:var(--cinza-050);--surface:#fff;--surface-2:var(--cinza-100);
+  --text:var(--cinza-900);--text-2:var(--cinza-700);--muted:var(--cinza-600);
+  --border:var(--cinza-200);--border-strong:var(--cinza-300);
+  --primary:var(--azul-700);--primary-hover:var(--azul-800);--primary-soft:var(--azul-100);
+  --on-primary:#fff;--accent:var(--sp-vermelho);--ring:rgba(20,107,184,.28);
+  --shadow-sm:0 2px 8px rgba(16,24,40,.07);--shadow-md:0 10px 28px rgba(5,34,63,.10);
+  --shadow-lg:0 22px 60px rgba(5,34,63,.22);
+  --radius:16px;--radius-sm:9px;--radius-pill:999px;
+  --sidebar-w:266px;--topbar-h:66px;--tr:.2s ease;
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+}
+body.dark{--bg:#0A1424;--surface:#111E33;--surface-2:#16253D;--text:#EAF1FA;--text-2:#C3D0E0;
+  --muted:#93A4BB;--border:#22344F;--border-strong:#2E4568;
+  --primary:var(--azul-500);--primary-hover:var(--azul-400);--primary-soft:rgba(20,107,184,.18);
+  --ring:rgba(61,139,212,.35)}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);font-size:15px;line-height:1.55;color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;transition:background var(--tr),color var(--tr)}
+body::before{content:"";position:fixed;inset:0 0 auto 0;height:4px;z-index:9999;
+  background:linear-gradient(90deg,var(--sp-preto) 0 33.33%,#fff 33.33% 66.66%,var(--sp-vermelho) 66.66% 100%);
+  box-shadow:0 1px 0 rgba(0,0,0,.15)}
+img{max-width:100%;display:block}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,h4{margin:0 0 .4em;line-height:1.25;letter-spacing:-.015em;color:var(--text)}
+h1{font-size:1.5rem;font-weight:800}h3{font-size:1rem;font-weight:700}
+p{margin:0 0 .6em}
+::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:99px;border:3px solid transparent;background-clip:content-box}
+.hidden{display:none!important}.req{color:var(--accent);font-weight:800}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;
+  border-radius:var(--radius-sm);border:1px solid transparent;cursor:pointer;font-weight:600;font-size:.9rem;
+  line-height:1;transition:transform .12s ease,background var(--tr),box-shadow var(--tr),border-color var(--tr),color var(--tr);
+  white-space:nowrap;user-select:none}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
+.btn-primary{background:linear-gradient(180deg,var(--primary),var(--primary-hover));color:var(--on-primary);
+  box-shadow:0 4px 14px rgba(10,65,121,.28)}
+.btn-primary:hover{filter:brightness(1.07);box-shadow:0 7px 20px rgba(10,65,121,.34)}
+.btn-outline{background:transparent;border-color:var(--border-strong);color:var(--text-2)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
+.btn-secondary{background:var(--surface-2);border-color:var(--border);color:var(--text-2)}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary)}
+.btn-success{background:var(--verde);color:#fff;box-shadow:0 4px 14px rgba(6,118,71,.25)}
+.btn-danger{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(206,17,38,.28)}
+.btn-danger:hover{background:var(--sp-vermelho-esc)}
+.btn-sm{padding:8px 13px;font-size:.81rem;border-radius:8px}
+.btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:2px}
+.form-group label{font-size:.79rem;font-weight:700;color:var(--text-2);letter-spacing:.02em;text-transform:uppercase}
+input[type="text"],input[type="date"],input[type="search"],select,textarea{
+  width:100%;padding:12px 14px;background:var(--surface);color:var(--text);
+  border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.92rem;
+  transition:border-color var(--tr),box-shadow var(--tr),background var(--tr)}
+input::placeholder,textarea::placeholder{color:var(--cinza-400)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px var(--ring)}
+textarea{resize:vertical;min-height:80px}
+select{appearance:none;cursor:pointer;padding-right:38px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.form-grid .full-width{grid-column:1/-1}
+.form-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px;padding-top:20px;border-top:1px dashed var(--border)}
+.app-container{display:flex;min-height:100vh;background:var(--bg)}
+.sidebar{width:var(--sidebar-w);flex:0 0 var(--sidebar-w);
+  background:linear-gradient(180deg,var(--azul-900),var(--azul-800) 55%,#041B33);
+  color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+  box-shadow:4px 0 24px rgba(5,34,63,.22);z-index:60;transition:transform .28s ease}
+.sidebar-header{display:flex;align-items:center;gap:12px;padding:20px 18px 18px;
+  border-bottom:1px solid rgba(255,255,255,.10);position:relative}
+.sidebar-header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--sp-vermelho) 0 33%,#fff 33% 66%,var(--sp-preto) 66% 100%);opacity:.85}
+.sidebar-logo-img{height:42px;width:42px;border-radius:10px;object-fit:cover;background:#fff;padding:2px}
+.sidebar-brand strong{display:block;font-size:.97rem;font-weight:800}
+.sidebar-brand small{display:block;font-size:.7rem;color:rgba(255,255,255,.62);letter-spacing:.09em;text-transform:uppercase;font-weight:600}
+.sidebar-nav{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:3px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:var(--radius-sm);
+  color:rgba(255,255,255,.80);font-size:.89rem;font-weight:600;
+  transition:background var(--tr),color var(--tr),transform .12s ease;position:relative;cursor:pointer}
+.nav-item:hover{background:rgba(255,255,255,.09);color:#fff;transform:translateX(2px)}
+.nav-item.active{background:linear-gradient(90deg,rgba(255,255,255,.19),rgba(255,255,255,.07));
+  color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.nav-item.active::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:4px;
+  border-radius:0 4px 4px 0;background:var(--sp-vermelho)}
+.nav-icon{font-size:1.06rem;width:22px;text-align:center;flex:0 0 22px}
+.nav-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-footer{padding:14px 14px 18px;border-top:1px solid rgba(255,255,255,.10);
+  display:flex;flex-direction:column;gap:9px}
+.btn-theme{width:100%;padding:11px 14px;border-radius:var(--radius-sm);
+  border:1px solid rgba(255,255,255,.20);background:rgba(255,255,255,.07);color:#fff;
+  font-weight:600;font-size:.85rem;cursor:pointer;transition:background var(--tr),border-color var(--tr)}
+.btn-theme:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.36)}
+.main-content{flex:1;min-width:0;display:flex;flex-direction:column;padding:22px 26px 8px}
+.topbar{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px 18px;margin-bottom:22px;box-shadow:var(--shadow-sm);
+  position:sticky;top:10px;z-index:50}
+.sidebar-toggle{display:none;background:var(--primary-soft);border:1px solid var(--border);
+  color:var(--primary);font-size:1.1rem;width:42px;height:42px;border-radius:var(--radius-sm);cursor:pointer;flex:0 0 auto}
+.topbar-search{flex:1;min-width:0}
+.topbar-search input{border-radius:var(--radius-pill);background:var(--surface-2);padding:11px 18px;border-color:transparent}
+.topbar-search input:focus{background:var(--surface);border-color:var(--primary)}
+.topbar-right{display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.notification-bell{position:relative;cursor:pointer;font-size:1.2rem;line-height:1;
+  width:42px;height:42px;display:grid;place-items:center;border-radius:var(--radius-pill);
+  background:var(--surface-2);border:1px solid var(--border);transition:background var(--tr),border-color var(--tr)}
+.notification-bell:hover{background:var(--primary-soft);border-color:var(--azul-200)}
+.notif-badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;
+  background:var(--accent);color:#fff;border-radius:var(--radius-pill);font-size:.68rem;font-weight:800;
+  display:grid;place-items:center;border:2px solid var(--surface)}
+.conn-status{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;
+  padding:8px 13px;border-radius:var(--radius-pill);background:var(--surface-2);border:1px solid var(--border);
+  color:var(--text-2);white-space:nowrap}
+.conn-dot{width:9px;height:9px;border-radius:50%;background:var(--cinza-400);box-shadow:0 0 0 3px rgba(152,162,179,.18)}
+.conn-status.online .conn-dot{background:var(--verde);box-shadow:0 0 0 3px rgba(6,118,71,.20)}
+.conn-status.offline .conn-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(206,17,38,.20)}
+.conn-status.syncing .conn-dot{background:var(--ambar);box-shadow:0 0 0 3px rgba(180,83,9,.20)}
+.conn-status.local .conn-dot{background:var(--azul-600);box-shadow:0 0 0 3px rgba(14,84,153,.20)}
+.notif-panel{position:fixed;top:calc(var(--topbar-h) + 26px);right:26px;width:min(360px,calc(100vw - 32px));
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow-lg);padding:16px;z-index:200;max-height:60vh;overflow:auto}
+.notif-panel h3{margin-bottom:12px;font-size:.95rem;color:var(--azul-800)}
+#notifList > *{padding:11px 13px;border-radius:var(--radius-sm);background:var(--surface-2);
+  border-left:3px solid var(--primary);margin-bottom:8px;font-size:.85rem}
+.section{display:none;animation:fade .28s ease}
+.section.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hero-card{background:radial-gradient(520px 260px at 100% 0%,rgba(255,255,255,.16),transparent 60%),
+  linear-gradient(140deg,var(--azul-800),var(--azul-600));color:#fff;border-radius:var(--radius);
+  padding:26px;border-left:5px solid var(--accent);box-shadow:var(--shadow-md);position:relative;overflow:hidden}
+.hero-card h1{color:#fff;font-size:1.42rem;font-weight:800;margin-bottom:10px}
+.hero-card p{color:rgba(255,255,255,.90);font-size:.93rem;margin-bottom:14px}
+.hero-card .sub{display:inline-block;font-size:.74rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);
+  padding:6px 12px;border-radius:var(--radius-pill)}
+.hero-section{margin-bottom:22px}.hero-section h1{font-size:1.5rem}
+.app-footer{margin-top:auto;padding:26px 0 16px;text-align:center;font-size:.76rem;
+  color:var(--muted);font-weight:600;letter-spacing:.05em}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:22px}
+.cards-grid > *{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+  transition:transform var(--tr),box-shadow var(--tr),border-color var(--tr)}
+.cards-grid > *::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:linear-gradient(180deg,var(--azul-600),var(--azul-800))}
+.cards-grid > *:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--azul-200)}
+.cards-grid > *:nth-child(2)::before{background:linear-gradient(180deg,var(--ambar),#92400E)}
+.cards-grid > *:nth-child(3)::before{background:linear-gradient(180deg,#12B76A,var(--verde))}
+.cards-grid > *:nth-child(4)::before{background:linear-gradient(180deg,var(--accent),var(--sp-vermelho-esc))}
+.charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:22px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow-sm)}
+.chart-card h3{font-size:.87rem;font-weight:700;color:var(--text-2);text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:14px;padding-bottom:11px;border-bottom:2px solid var(--primary-soft)}
+.upcoming-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow-sm)}
+.upcoming-card h3{margin-bottom:14px;color:var(--azul-800)}
+#upcomingList > *{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;
+  border-radius:var(--radius-sm);background:var(--surface-2);border-left:3px solid var(--primary);
+  margin-bottom:8px;font-size:.87rem}
+.action-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:26px;box-shadow:var(--shadow-sm)}
+.filters-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;box-shadow:var(--shadow-sm)}
+.filter-group{display:flex;flex-direction:column;gap:5px;min-width:150px;flex:1 1 150px}
+.filter-group label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.filter-group select{padding:9px 34px 9px 12px;font-size:.85rem}
+.filters-bar .btn{flex:0 0 auto}
+.table-responsive{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow-x:auto;box-shadow:var(--shadow-sm)}
+table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:840px}
+thead th{background:linear-gradient(180deg,var(--azul-800),var(--azul-700));color:#fff;text-align:left;
+  font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:14px 16px;white-space:nowrap;position:sticky;top:0}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text-2)}
+tbody tr:nth-child(even){background:var(--surface-2)}
+tbody tr:hover{background:var(--primary-soft)}
+tbody tr:last-child td{border-bottom:none}
+td:first-child{font-weight:600;color:var(--text)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:var(--radius-pill);
+  font-size:.72rem;font-weight:700;white-space:nowrap;
+  background:var(--surface-2);color:var(--text-2);border:1px solid var(--border)}
+.badge-planejada{background:var(--azul-100);color:var(--azul-800);border-color:var(--azul-200)}
+.badge-em_andamento{background:var(--ambar-bg);color:var(--ambar);border-color:#FDE68A}
+.badge-concluida{background:var(--verde-bg);color:var(--verde);border-color:#A7F3D0}
+.badge-cancelada{background:var(--vermelho-bg);color:var(--vermelho);border-color:#FECDCA}
+.badge-alta{background:var(--vermelho-bg);color:var(--vermelho);border-color:#FECDCA}
+.badge-media{background:var(--ambar-bg);color:var(--ambar);border-color:#FDE68A}
+.badge-baixa{background:var(--verde-bg);color:var(--verde);border-color:#A7F3D0}
+.empty-state{text-align:center;padding:44px 20px;color:var(--muted);background:var(--surface);
+  border:1px dashed var(--border-strong);border-radius:var(--radius);margin-top:16px;font-weight:600}
+.calendar-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.calendar-controls h3{flex:1;text-align:center;margin:0;color:var(--azul-800);font-size:1.02rem;font-weight:800;text-transform:capitalize}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm)}
+.calendar-grid > *{min-height:96px;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:9px;font-size:.78rem;color:var(--text-2);overflow:hidden;
+  position:relative;cursor:pointer;transition:border-color var(--tr),box-shadow var(--tr),transform .12s ease}
+.calendar-grid > *:hover{border-color:var(--primary);box-shadow:var(--shadow-sm);transform:translateY(-2px)}
+.calendar-weekday{background:transparent!important;border:none!important;min-height:auto!important;
+  text-align:center;font-weight:800;color:var(--azul-700);cursor:default;text-transform:uppercase;
+  font-size:.7rem;letter-spacing:.08em;box-shadow:none!important;transform:none!important;padding:4px 0}
+.calendar-day.today{background:var(--primary-soft)!important;border-color:var(--primary)!important;box-shadow:inset 0 0 0 1px var(--primary)}
+.calendar-day.empty{background:transparent!important;border-style:dashed;cursor:default}
+.day-event{display:block;margin-top:5px;padding:4px 7px;border-radius:5px;background:var(--azul-700);
+  color:#fff;font-size:.68rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day-modal{position:fixed;inset:0;background:rgba(5,34,63,.62);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;padding:20px;z-index:400}
+.day-modal-content{background:var(--surface);border-radius:var(--radius);width:min(560px,100%);
+  max-height:82vh;overflow:auto;box-shadow:var(--shadow-lg);border-top:5px solid var(--accent)}
+.day-modal-header{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:18px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:2}
+.day-modal-header h3{margin:0;color:var(--azul-800)}
+.day-modal-close{background:var(--surface-2);border:1px solid var(--border);color:var(--text-2);
+  width:34px;height:34px;border-radius:var(--radius-pill);cursor:pointer;font-size:.95rem;line-height:1}
+.day-modal-close:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+#dayModalBody{padding:20px 22px}
+.reports-tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.report-content{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:26px;box-shadow:var(--shadow-sm);min-height:240px}
+.report-content h2,.report-content h3{color:var(--azul-800)}
+.report-content table{margin-top:14px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.report-content thead th{background:var(--primary-soft);color:var(--azul-800)}
+.report-actions{display:flex;justify-content:flex-end;margin-top:18px}
+.config-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px;margin-bottom:18px;box-shadow:var(--shadow-sm)}
+.config-card h3{margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--primary-soft);color:var(--azul-800)}
+.backup-actions{display:flex;flex-wrap:wrap;gap:12px}
+.danger-zone{border-color:#FECDCA;background:linear-gradient(180deg,var(--vermelho-bg),var(--surface) 60%)}
+.danger-zone h3{color:var(--vermelho);border-bottom-color:#FECDCA}
+.danger-note{margin-top:12px;font-size:.8rem;color:var(--vermelho);font-weight:600}
+.info-box{background:var(--azul-050);border:1px solid var(--azul-200);border-left:4px solid var(--primary);
+  border-radius:var(--radius-sm);padding:14px 18px;font-size:.86rem;color:var(--azul-800);margin-bottom:16px}
+.toast-container{position:fixed;right:22px;bottom:22px;z-index:1000;display:flex;flex-direction:column;
+  gap:10px;max-width:calc(100vw - 44px)}
+.toast{background:var(--surface);border:1px solid var(--border);border-left:5px solid var(--primary);
+  border-radius:var(--radius-sm);padding:14px 18px;min-width:250px;box-shadow:var(--shadow-md);
+  font-size:.87rem;font-weight:600;animation:slideIn .3s ease;color:var(--text)}
+.toast.success{border-left-color:var(--verde)}
+.toast.error{border-left-color:var(--accent)}
+.toast.warning{border-left-color:var(--ambar)}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.modal-overlay{position:fixed;inset:0;background:rgba(5,34,63,.62);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;padding:20px;z-index:900}
+.modal-box{background:var(--surface);border-radius:var(--radius);width:min(560px,100%);max-height:85vh;
+  display:flex;flex-direction:column;box-shadow:var(--shadow-lg);border-top:5px solid var(--primary);animation:pop .22s ease}
+@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-bottom:1px solid var(--border)}
+.modal-header h3{margin:0;color:var(--azul-800)}
+.modal-close{background:var(--surface-2);border:1px solid var(--border);color:var(--text-2);
+  width:34px;height:34px;border-radius:var(--radius-pill);cursor:pointer;line-height:1}
+.modal-close:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.modal-body{padding:22px;overflow:auto;color:var(--text-2)}
+.modal-footer{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;padding:16px 22px;
+  border-top:1px solid var(--border);background:var(--surface-2);border-radius:0 0 var(--radius) var(--radius)}
+@media (max-width:900px){
+  .main-content{padding:16px 14px 6px}
+  .sidebar-toggle{display:grid;place-items:center}
+  .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);z-index:300}
+  .sidebar.open{transform:translateX(0)}
+  .topbar{top:6px}
+  .notif-panel{right:14px;top:calc(var(--topbar-h) + 14px)}
+  .charts-row,.cards-grid{grid-template-columns:1fr}
+  .calendar-grid{gap:5px;padding:10px}
+  .calendar-grid > *{min-height:74px;font-size:.7rem;padding:6px}
+}
+@media (max-width:560px){
+  .conn-status .lbl{display:none}
+  .filters-bar{padding:14px}.filter-group{flex:1 1 100%}
+  .action-form,.config-card,.report-content{padding:18px}
+  h1{font-size:1.28rem}.hero-card h1{font-size:1.2rem}.hero-card{padding:20px}
+}
+@media print{
+  body{background:#fff;color:#000}body::before{display:none}
+  .sidebar,.topbar,.filters-bar,.report-actions,.app-footer,.sidebar-toggle,
+  .toast-container,.notif-panel,.modal-overlay,.day-modal{display:none!important}
+  .app-container{display:block}.main-content{padding:0}
+  .section{display:none!important}.section.active{display:block!important}
+  .hero-card{background:#fff!important;color:#000!important;border:1px solid #ccc;
+    border-left:5px solid #CE1126;box-shadow:none}
+  .hero-card h1,.hero-card p{color:#000!important}
+  .hero-card .sub{color:#000!important;border-color:#999;background:#f2f2f2}
+  .report-content,.table-responsive,.chart-card{box-shadow:none;border:1px solid #ccc}
+  table thead th{background:#0A4179!important;color:#fff!important;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<div id="app" class="app-container">
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <img src="https://i.ibb.co/0p01LzxB/logo3de.jpg" alt="Logo" class="sidebar-logo-img">
+      <div class="sidebar-brand"><strong>Agenda PEC</strong><small>SEDUC SP 2026</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="dashboard"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a href="#" class="nav-item" data-section="novaAcao"><span class="nav-icon">✏️</span><span class="nav-label">Nova Ação</span></a>
+      <a href="#" class="nav-item" data-section="listaAcoes"><span class="nav-icon">📋</span><span class="nav-label">Agenda e Visitas</span></a>
+      <a href="#" class="nav-item" data-section="calendario"><span class="nav-icon">📅</span><span class="nav-label">Calendário</span></a>
+      <a href="#" class="nav-item" data-section="relatorios"><span class="nav-icon">📈</span><span class="nav-label">Relatórios</span></a>
+      <a href="#" class="nav-item" data-section="gestaoEscolar"><span class="nav-icon">🏫</span><span class="nav-label">Cadastros</span></a>
+      <a href="#" class="nav-item" data-section="configuracoes"><span class="nav-icon">⚙️</span><span class="nav-label">Configurações</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="themeToggle" class="btn-theme">☀️ Tema Claro</button>
+    </div>
+  </aside>
+
+  <main id="mainContent" class="main-content">
+    <header class="topbar">
+      <button id="sidebarToggle" class="sidebar-toggle">☰</button>
+      <div class="topbar-search">
+        <input type="text" id="globalSearch" placeholder="🔍 Pesquisar ações, responsáveis, categorias...">
+      </div>
+      <div class="topbar-right">
+        <div class="conn-status syncing" id="connStatus" title="Status de sincronização">
+          <span class="conn-dot"></span><span class="lbl" id="connLabel">Iniciando...</span>
+        </div>
+        <div class="notification-bell" id="notifBell" title="Notificações">🔔<span class="notif-badge" id="notifBadge">0</span></div>
+      </div>
+    </header>
+
+    <div id="notifPanel" class="notif-panel hidden">
+      <h3>🔔 Notificações</h3>
+      <div id="notifList"></div>
+    </div>
+
+    <section id="secDashboard" class="section active">
+      <div class="hero-card hero-section">
+        <h1>📊 Painel de Controle</h1>
+        <p>Visão geral das visitas e ações pedagógicas e indicadores de execução da agenda.</p>
+        <div class="sub">Rede Pública · 2026</div>
+      </div>
+      <div class="cards-grid" id="dashboardCards"></div>
+      <div class="charts-row">
+        <div class="chart-card"><h3>Distribuição por Status</h3><canvas id="chartStatus"></canvas></div>
+        <div class="chart-card"><h3>Ações por Tema</h3><canvas id="chartCategoria"></canvas></div>
+        <div class="chart-card"><h3>Evolução Mensal</h3><canvas id="chartMensal"></canvas></div>
+      </div>
+      <div class="upcoming-card">
+        <h3>📅 Próximas Atividades (7 dias)</h3>
+        <div id="upcomingList"></div>
+      </div>
+    </section>
+
+    <section id="secNovaAcao" class="section">
+      <div class="hero-card hero-section">
+        <h1 id="formTitle">✏️ Nova Visita / Ação</h1>
+        <p>Cadastre visitas, alinhamentos, formações, devolutivas e acompanhamentos dos PECs.</p>
+      </div>
+      <form id="acaoForm" class="action-form" autocomplete="off">
+        <input type="hidden" id="editId">
+        <div class="form-grid">
+          <div class="form-group"><label for="fTitulo">📌 Título da Visita / Ação <span class="req">*</span></label><input type="text" id="fTitulo" placeholder="Ex: Visita de acompanhamento - Matemática" required></div>
+          <div class="form-group"><label for="fCategoria">📂 Tipo de acompanhamento <span class="req">*</span></label><select id="fCategoria" required><option value="">Selecione...</option></select></div>
+          <div class="form-group full-width"><label for="fDescricao">📝 Descrição</label><textarea id="fDescricao" rows="3" placeholder="Descreva os objetivos e detalhes da ação..."></textarea></div>
+          <div class="form-group"><label for="fDataInicio">📅 Data de Início <span class="req">*</span></label><input type="date" id="fDataInicio" required></div>
+          <div class="form-group"><label for="fDataFinal">📅 Data Final <span class="req">*</span></label><input type="date" id="fDataFinal" required></div>
+          <div class="form-group"><label for="fResponsavel">👤 PEC Responsável <span class="req">*</span></label><input type="text" id="fResponsavel" placeholder="Nome do PEC responsável" required></div>
+          <div class="form-group"><label for="fEscola">🏫 Escola / Polo <span class="req">*</span></label><input type="text" id="fEscola" placeholder="Nome da unidade escolar" required></div>
+          <div class="form-group"><label for="fMunicipio">📍 Município</label><input type="text" id="fMunicipio" placeholder="Caieiras, Cajamar, Franco da Rocha..."></div>
+          <div class="form-group"><label for="fFoco">🎯 Foco da visita</label><input type="text" id="fFoco" placeholder="Indicador, turma, habilidade ou programa prioritário"></div>
+          <div class="form-group"><label for="fPublico">👥 Participantes / Público-alvo</label><input type="text" id="fPublico" placeholder="Ex: Equipe gestora, CGP e docentes"></div>
+          <div class="form-group"><label for="fPrioridade">⚡ Prioridade</label><select id="fPrioridade"><option value="media">Média</option><option value="baixa">Baixa</option><option value="alta">Alta</option></select></div>
+          <div class="form-group"><label for="fStatus">🔄 Status</label><select id="fStatus"><option value="planejada">Planejada</option><option value="em_andamento">Em andamento</option><option value="concluida">Concluída</option><option value="cancelada">Cancelada</option></select></div>
+          <div class="form-group full-width"><label for="fIndicadores">📊 Indicadores analisados</label><textarea id="fIndicadores" rows="2" placeholder="Frequência, desempenho, participação, uso de plataforma..."></textarea></div>
+          <div class="form-group full-width"><label for="fEncaminhamentos">✅ Encaminhamentos pactuados</label><textarea id="fEncaminhamentos" rows="3" placeholder="Ação, responsável, prazo e forma de monitoramento"></textarea></div>
+          <div class="form-group"><label for="fRetorno">🔁 Data do retorno</label><input type="date" id="fRetorno"></div>
+          <div class="form-group full-width"><label for="fEvidencias">📎 Evidências e links</label><input type="text" id="fEvidencias" placeholder="Cole links de fotos, documentos, relatórios..."></div>
+          <div class="form-group full-width"><label for="fObservacoes">📝 Observações</label><textarea id="fObservacoes" rows="2" placeholder="Pendências, encaminhamentos, notas..."></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="btnSalvarAcao">💾 Salvar Ação</button>
+          <button type="button" class="btn btn-outline" id="btnCancelarAcao">✖ Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="secListaAcoes" class="section">
+      <div class="hero-card hero-section">
+        <h1>📋 Agenda e Visitas</h1>
+        <p>Filtre e gerencie visitas, orientações, formações e acompanhamentos por PEC e escola.</p>
+      </div>
+      <div class="filters-bar" id="filtersBar">
+        <div class="filter-group"><label>Mês</label><select id="filterMes"><option value="">Todos</option></select></div>
+        <div class="filter-group"><label>Ano</label><select id="filterAno"><option value="">Todos</option></select></div>
+        <div class="filter-group"><label>Categoria</label><select id="filterCategoria"><option value="">Todas</option></select></div>
+        <div class="filter-group"><label>PEC Responsável</label><select id="filterResponsavel"><option value="">Todos</option></select></div>
+        <div class="filter-group"><label>Status</label><select id="filterStatus"><option value="">Todos</option><option value="planejada">Planejada</option><option value="em_andamento">Em Andamento</option><option value="concluida">Concluída</option><option value="cancelada">Cancelada</option></select></div>
+        <div class="filter-group"><label>Prioridade</label><select id="filterPrioridade"><option value="">Todas</option><option value="alta">Alta</option><option value="media">Média</option><option value="baixa">Baixa</option></select></div>
+        <button class="btn btn-sm btn-outline" id="btnLimparFiltros">Limpar</button>
+      </div>
+      <div class="table-responsive">
+        <table id="acoesTable">
+          <thead><tr><th>Título</th><th>Categoria</th><th>Início</th><th>Fim</th><th>PEC Responsável</th><th>Escola</th><th>Prioridade</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="acoesTableBody"></tbody>
+        </table>
+      </div>
+      <div id="emptyAcoes" class="empty-state hidden"><p>Nenhuma ação encontrada.</p></div>
+    </section>
+
+    <section id="secCalendario" class="section">
+      <div class="hero-card hero-section">
+        <h1>📅 Calendário Mensal</h1>
+        <p>Visualize todas as atividades organizadas por dia.</p>
+      </div>
+      <div class="calendar-controls">
+        <button class="btn btn-sm btn-outline" id="calPrev">◀ Anterior</button>
+        <h3 id="calTitle">Janeiro 2026</h3>
+        <button class="btn btn-sm btn-outline" id="calNext">Próximo ▶</button>
+        <button class="btn btn-sm btn-secondary" id="calHoje">Hoje</button>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <div id="dayModal" class="day-modal hidden">
+        <div class="day-modal-content">
+          <div class="day-modal-header">
+            <h3 id="dayModalTitle"></h3>
+            <button class="day-modal-close" id="dayModalClose">✕</button>
+          </div>
+          <div id="dayModalBody"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="secRelatorios" class="section">
+      <div class="hero-card hero-section">
+        <h1>📈 Relatórios</h1>
+        <p>Gere relatórios semanais, mensais e anuais com os indicadores da regional e das escolas.</p>
+      </div>
+      <div class="filters-bar"><div class="filter-group"><label>PEC</label><select id="reportPEC"><option value="">Todos os PECs</option></select></div><div class="filter-group"><label>Escola</label><select id="reportEscola"><option value="">Todas as escolas</option></select></div><div class="filter-group"><label>Data inicial</label><input type="date" id="reportInicio"></div><div class="filter-group"><label>Data final</label><input type="date" id="reportFim"></div><button class="btn btn-sm btn-outline" id="btnLimparRelatorio">Limpar</button></div>
+      <div class="reports-tabs">
+        <button class="btn btn-sm btn-primary active" data-report="semanal">Semanal</button>
+        <button class="btn btn-sm btn-outline" data-report="mensal">Mensal</button>
+        <button class="btn btn-sm btn-outline" data-report="anual">Anual</button>
+      </div>
+      <div id="reportContent" class="report-content"></div>
+      <div class="report-actions">
+        <button class="btn btn-secondary" id="btnExportarRelatorioCSV">📄 Exportar relatório CSV</button> <button class="btn btn-primary" id="btnImprimirRelatorio">🖨️ Imprimir / Salvar PDF</button>
+      </div>
+    </section>
+
+    <section id="secGestaoEscolar" class="section">
+      <div class="hero-card hero-section">
+        <h1>🏫 Cadastros</h1>
+        <p>Cadastre os dados institucionais e os PECs responsáveis pelos acompanhamentos.</p>
+      </div>
+      <form id="gestaoForm" class="action-form">
+        <div class="form-grid">
+          <div class="form-group"><label for="gNomeEscola">🏫 Unidade Regional de Ensino</label><input type="text" id="gNomeEscola" placeholder="URE Caieiras"></div>
+          <div class="form-group"><label for="gDiretor">👤 Coordenador(a) Geral</label><input type="text" id="gDiretor" placeholder="Nome do(a) Coordenador(a) Geral"></div>
+          <div class="form-group"><label for="gCoordenador(a) da Equipe Curricular">📋 Coordenador(a) da Equipe Curricular</label><input type="text" id="gCoordenador(a) da Equipe Curricular" placeholder="Nome do Coordenador(a) da Equipe Curricular"></div>
+          <div class="form-group"><label for="gAnoLetivo">📅 Ano Letivo</label><input type="text" id="gAnoLetivo" placeholder="2026"></div>
+          <div class="form-group"><label for="gDiretoria">🏢 Regional / Território</label><input type="text" id="gDiretoria" placeholder="Ex: Regional / Território de Caieiras"></div>
+        </div>
+        <div class="form-actions"><button type="submit" class="btn btn-primary">💾 Salvar Informações</button></div>
+      </form>
+    </section>
+
+    <section id="secConfiguracoes" class="section">
+      <div class="hero-card hero-section">
+        <h1>⚙️ Configurações</h1>
+        <p>Backup, preferências e gerenciamento dos dados.</p>
+      </div>
+      <div class="config-card">
+        <h3>☁️ Modo de armazenamento</h3>
+        <div class="info-box" id="modeInfo">Verificando...</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="btnRecarregar">🔄 Recarregar dados</button>
+          <span id="projectInfo" style="align-self:center;font-size:.85rem;color:var(--muted)"></span>
+        </div>
+      </div>
+      <div class="config-card">
+        <h3>💾 Backup em arquivo</h3>
+        <div class="backup-actions">
+          <button class="btn btn-secondary" id="btnExportar">📤 Exportar JSON</button>
+          <button class="btn btn-secondary" id="btnImportar">📥 Importar JSON</button>
+          <button class="btn btn-secondary" id="btnExportarCSV">📊 Exportar CSV</button>
+          <button class="btn btn-secondary" id="btnImportarCSV">📥 Importar CSV</button>
+          <input type="file" id="importFile" accept=".json" class="hidden"><input type="file" id="importCSVFile" accept=".csv" class="hidden">
+        </div>
+        <p style="font-size:.82rem;color:var(--muted);margin-top:12px">Guarde uma cópia dos dados no seu computador.</p>
+      </div>
+      <div class="config-card danger-zone">
+        <h3>⚠️ Zona de Perigo</h3>
+        <button class="btn btn-danger" id="btnLimparTudo">🗑️ Apagar TODAS as ações</button>
+        <p class="danger-note">Esta ação é irreversível. Todos os registros serão apagados permanentemente.</p>
+      </div>
+    </section>
+
+    <footer class="app-footer"><p>Agenda Semanal PEC · URE Caieiras 2026</p></footer>
+  </main>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+<div id="genericModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header"><h3 id="modalTitle"></h3><button class="modal-close" id="modalClose">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCJN14aVrfueJAxw9bCCwTfgINXzsIMOtY",
+  authDomain: "urecaieirasformacoes2026.firebaseapp.com",
+  projectId: "urecaieirasformacoes2026",
+  storageBucket: "urecaieirasformacoes2026.firebasestorage.app",
+  messagingSenderId: "890215987043",
+  appId: "1:890215987043:web:889386d4dfb35475ce0556"
+};
+
+(function(){
+'use strict';
+
+const LS = {
+  ACOES:'pec_acoes_local',
+  GESTAO:'pec_gestao_local',
+  THEME:'pec_theme'
+};
+const CATEGORIAS = [
+  'Visita de acompanhamento pedagógico','Reunião de alinhamento','Observação de aula',
+  'Devolutiva à equipe gestora','Formação em serviço','Orientação técnica','Análise de indicadores',
+  'Busca ativa e frequência','Recomposição das aprendizagens','Orientação de Estudos',
+  'Plataformas educacionais','Avaliação e resultados','OMASP e Escolas Olímpicas',
+  'Convivência e clima escolar','Educação Especial','Projeto especial','Atendimento remoto','Outros'
+];
+const STATUS_LABEL = { planejada:'Planejada', em_andamento:'Em andamento', concluida:'Concluída', cancelada:'Cancelada' };
+const PRIORIDADE_LABEL = { alta:'Alta', media:'Média', baixa:'Baixa' };
+
+const state = {
+  acoes: [], gestao: {},
+  charts: { status:null, categoria:null, mensal:null },
+  calDate: new Date(), reportType: 'semanal',
+  db: null, mode: 'local'
+};
+
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const uid = () => 'a_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const escapeHtml = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function saveLocal(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+function loadLocal(k,f){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):f; }catch(e){ return f; } }
+function fmtDate(iso){ if(!iso) return '—'; const [y,m,d]=String(iso).split('-'); return (y&&m&&d)?`${d}/${m}/${y}`:iso; }
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function toISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function toast(msg,type='info',timeout=3200){
+  const c=$('#toastContainer'); if(!c) return;
+  const el=document.createElement('div'); el.className='toast '+type; el.textContent=msg;
+  c.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(30px)';
+    setTimeout(()=>el.remove(),250); },timeout);
+}
+function confirmModal(title,message,onConfirm){
+  const m=$('#genericModal');
+  $('#modalTitle').textContent=title;
+  $('#modalBody').innerHTML='<p>'+escapeHtml(message)+'</p>';
+  const f=$('#modalFooter'); f.innerHTML='';
+  const c=document.createElement('button'); c.className='btn btn-outline'; c.textContent='Cancelar';
+  c.onclick=()=>m.classList.add('hidden');
+  const o=document.createElement('button'); o.className='btn btn-danger'; o.textContent='Confirmar';
+  o.onclick=()=>{ m.classList.add('hidden'); onConfirm(); };
+  f.appendChild(c); f.appendChild(o);
+  m.classList.remove('hidden');
+}
+function setConn(status,label){
+  const el=$('#connStatus'); if(!el) return;
+  el.classList.remove('online','offline','syncing','local');
+  el.classList.add(status); $('#connLabel').textContent=label;
+}
+
+/* ============= STORAGE (local ou firestore) ============= */
+const store = {
+  async add(dados){
+    if(state.mode==='cloud'){
+      dados.criadoEm = new Date().toISOString();
+      const ref = await state.db.collection('acoes').add(dados);
+      return ref.id;
+    } else {
+      const id = uid();
+      dados.id = id; dados.criadoEm = new Date().toISOString();
+      state.acoes.unshift(dados); saveLocal(LS.ACOES, state.acoes);
+      refreshAll(); return id;
+    }
+  },
+  async update(id, dados){
+    if(state.mode==='cloud'){
+      await state.db.collection('acoes').doc(id).update(dados);
+    } else {
+      const i = state.acoes.findIndex(a=>a.id===id);
+      if(i>=0){ state.acoes[i]=Object.assign({},state.acoes[i],dados); saveLocal(LS.ACOES,state.acoes); refreshAll(); }
+    }
+  },
+  async remove(id){
+    if(state.mode==='cloud'){
+      await state.db.collection('acoes').doc(id).delete();
+    } else {
+      state.acoes = state.acoes.filter(a=>a.id!==id); saveLocal(LS.ACOES,state.acoes); refreshAll();
+    }
+  },
+  async clearAll(){
+    if(state.mode==='cloud'){
+      const snap = await state.db.collection('acoes').get();
+      const batch = state.db.batch();
+      snap.docs.forEach(d=>batch.delete(d.ref));
+      await batch.commit();
+    } else {
+      state.acoes=[]; saveLocal(LS.ACOES,[]); refreshAll();
+    }
+  },
+  async saveGestao(dados){
+    if(state.mode==='cloud'){
+      await state.db.collection('config').doc('gestao').set(dados,{merge:true});
+    } else {
+      state.gestao=dados; saveLocal(LS.GESTAO,dados);
+    }
+  },
+  async importarAcoes(lista){
+    if(state.mode==='cloud'){
+      const batch = state.db.batch();
+      lista.forEach(a=>{
+        const ref = state.db.collection('acoes').doc();
+        const c = Object.assign({},a); delete c.id;
+        if(!c.criadoEm) c.criadoEm=new Date().toISOString();
+        batch.set(ref,c);
+      });
+      await batch.commit();
+    } else {
+      lista.forEach(a=>{
+        const c = Object.assign({},a); c.id = c.id || uid();
+        if(!c.criadoEm) c.criadoEm=new Date().toISOString();
+        state.acoes.unshift(c);
+      });
+      saveLocal(LS.ACOES, state.acoes); refreshAll();
+    }
+  }
+};
+
+/* ============= FIREBASE ============= */
+function firebaseConfigurado(){
+  return firebaseConfig.apiKey && firebaseConfig.apiKey !== 'COLE_AQUI'
+      && firebaseConfig.projectId && firebaseConfig.projectId !== 'COLE_AQUI';
+}
+function initFirebase(){
+  if(!firebaseConfigurado()){
+    state.mode='local';
+    loadLocalData();
+    setConn('local','Local');
+    $('#modeInfo').innerHTML='<strong>Modo Local:</strong> os dados estão sendo salvos apenas neste navegador. Para sincronizar entre dispositivos, configure o <code>URECAI</code> no código-fonte.';
+    $('#projectInfo').textContent='';
+    refreshAll();
+    return;
+  }
+  try{
+    firebase.initializeApp(firebaseConfig);
+    state.db = firebase.firestore();
+    try{ state.db.enablePersistence({synchronizeTabs:true}).catch(()=>{}); }catch(e){}
+    state.mode='cloud';
+    setConn('syncing','Conectando...');
+    $('#modeInfo').innerHTML='<strong>Modo Nuvem:</strong> os dados estão sendo salvos no URECAI e sincronizados em tempo real entre todos os dispositivos.';
+    $('#projectInfo').textContent='Projeto: '+firebaseConfig.projectId;
+    subscribeAcoes();
+    subscribeGestao();
+  }catch(e){
+    console.error('Erro URECAI:',e);
+    state.mode='local';
+    loadLocalData();
+    setConn('local','Local');
+    toast('Falha ao conectar ao URECAI. Usando modo Local.', 'warning', 5000);
+  }
+}
+function subscribeAcoes(){
+  state.db.collection('acoes').orderBy('criadoEm','desc').onSnapshot(snap=>{
+    state.acoes = snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+    setConn('online','Online');
+    refreshAll();
+  }, err=>{
+    console.error(err);
+    setConn('offline','Offline');
+    toast('Erro ao ler dados da nuvem.','error');
+  });
+}
+function subscribeGestao(){
+  state.db.collection('config').doc('gestao').onSnapshot(doc=>{
+    state.gestao = doc.exists ? doc.data() : {};
+    fillGestaoForm();
+    renderReport(state.reportType);
+  }, err=>console.warn('gestao:',err));
+}
+function loadLocalData(){
+  state.acoes = loadLocal(LS.ACOES,[]);
+  state.gestao = loadLocal(LS.GESTAO,{});
+}
+
+/* ============= NAVEGAÇÃO ============= */
+function navigate(sec){
+  $$('.nav-item').forEach(i=>i.classList.toggle('active',i.dataset.section===sec));
+  $$('.section').forEach(s=>s.classList.toggle('active',s.id==='sec'+sec.charAt(0).toUpperCase()+sec.slice(1)));
+  if(sec==='dashboard') renderDashboard();
+  if(sec==='listaAcoes') renderLista();
+  if(sec==='calendario') renderCalendar();
+  if(sec==='relatorios') renderReport(state.reportType);
+  if(sec==='gestaoEscolar') fillGestaoForm();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function initNav(){
+  $$('.nav-item').forEach(item=>{
+    item.addEventListener('click',e=>{
+      e.preventDefault(); navigate(item.dataset.section);
+      if(window.innerWidth<=900) $('#sidebar').classList.remove('open');
+    });
+  });
+}
+
+/* ============= TEMA ============= */
+function applyTheme(t){
+  document.body.classList.toggle('dark',t==='dark');
+  $('#themeToggle').textContent = t==='dark'?'🌙 Tema Escuro':'☀️ Tema Claro';
+}
+function initTheme(){
+  applyTheme(loadLocal(LS.THEME,'light'));
+  $('#themeToggle').addEventListener('click',()=>{
+    const now = document.body.classList.contains('dark')?'light':'dark';
+    saveLocal(LS.THEME,now); applyTheme(now);
+  });
+}
+
+/* ============= DASHBOARD ============= */
+function renderDashboard(){
+  const acoes = state.acoes;
+  const total = acoes.length;
+  const emAnd = acoes.filter(a=>a.status==='em_andamento').length;
+  const concluidas = acoes.filter(a=>a.status==='concluida').length;
+  const atrasadas = acoes.filter(a=>a.status!=='concluida'&&a.status!=='cancelada'
+    &&a.dataFinal&&a.dataFinal<todayISO()).length;
+  const cards=[
+    {label:'Total de Registros',value:total,sub:'cadastrados',icon:'📊'},
+    {label:'Em Andamento',value:emAnd,sub:'em execução',icon:'⏳'},
+    {label:'Concluídas',value:concluidas,sub:(total?Math.round(concluidas/total*100):0)+'% do total',icon:'✅'},
+    {label:'Atrasadas',value:atrasadas,sub:'requerem atenção',icon:'⚠️'}
+  ];
+  $('#dashboardCards').innerHTML = cards.map(c=>`
+    <div>
+      <div style="font-size:.75rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">${c.icon} ${c.label}</div>
+      <div style="font-size:2rem;font-weight:800;color:var(--azul-800);line-height:1.1">${c.value}</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-top:4px">${c.sub}</div>
+    </div>`).join('');
+  renderCharts(acoes);
+  renderUpcoming(acoes);
+}
+function renderCharts(acoes){
+  if(typeof Chart==='undefined') return;
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  const st={planejada:0,em_andamento:0,concluida:0,cancelada:0};
+  acoes.forEach(a=>{ if(st[a.status]!==undefined) st[a.status]++; });
+  if(state.charts.status) state.charts.status.destroy();
+  state.charts.status = new Chart($('#chartStatus'),{
+    type:'doughnut',
+    data:{ labels:['Planejada','Em andamento','Concluída','Cancelada'],
+      datasets:[{ data:[st.planejada,st.em_andamento,st.concluida,st.cancelada],
+        backgroundColor:['#146BB8','#F59E0B','#067647','#CE1126'], borderWidth:0 }] },
+    options:{ responsive:true, aspectRatio:1.7,
+      plugins:{ legend:{ position:'bottom', labels:{ font:{size:11}, padding:12, boxWidth:12 } } } }
+  });
+  const cc={}; acoes.forEach(a=>{ if(a.categoria) cc[a.categoria]=(cc[a.categoria]||0)+1; });
+  const cl=Object.keys(cc).slice(0,8), cd=cl.map(k=>cc[k]);
+  if(state.charts.categoria) state.charts.categoria.destroy();
+  state.charts.categoria = new Chart($('#chartCategoria'),{
+    type:'bar',
+    data:{ labels:cl.length?cl:['Sem dados'],
+      datasets:[{ label:'Ações', data:cd.length?cd:[0], backgroundColor:'#0A4179',
+        borderRadius:6, maxBarThickness:36 }] },
+    options:{ responsive:true, aspectRatio:1.7,
+      plugins:{ legend:{ display:false } },
+      scales:{ y:{ beginAtZero:true, ticks:{precision:0}, grid:{color:'rgba(128,128,128,.15)'} },
+        x:{ grid:{display:false}, ticks:{font:{size:10}} } } }
+  });
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const md=new Array(12).fill(0); const ano=new Date().getFullYear();
+  acoes.forEach(a=>{ if(a.dataInicio){ const [y,m]=a.dataInicio.split('-'); if(parseInt(y)===ano) md[parseInt(m)-1]++; } });
+  if(state.charts.mensal) state.charts.mensal.destroy();
+  state.charts.mensal = new Chart($('#chartMensal'),{
+    type:'line',
+    data:{ labels:meses, datasets:[{ label:'Ações em '+ano, data:md,
+      borderColor:'#0A4179', backgroundColor:'rgba(10,65,121,.12)', fill:true, tension:.35,
+      pointBackgroundColor:'#CE1126', pointRadius:4, pointHoverRadius:6 }] },
+    options:{ responsive:true, aspectRatio:1.7,
+      plugins:{ legend:{display:false} },
+      scales:{ y:{ beginAtZero:true, ticks:{precision:0}, grid:{color:'rgba(128,128,128,.15)'} },
+        x:{ grid:{display:false} } } }
+  });
+}
+function renderUpcoming(acoes){
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const lim=new Date(hoje); lim.setDate(lim.getDate()+7);
+  const prox = acoes.filter(a=>{
+    if(a.status==='concluida'||a.status==='cancelada') return false;
+    if(!a.dataInicio) return false;
+    const d=new Date(a.dataInicio+'T00:00:00');
+    return d>=hoje && d<=lim;
+  }).sort((a,b)=>a.dataInicio.localeCompare(b.dataInicio));
+  const c=$('#upcomingList');
+  if(!prox.length){ c.innerHTML='<p style="color:var(--muted);text-align:center;padding:14px">Nenhuma atividade nos próximos 7 dias.</p>'; return; }
+  c.innerHTML = prox.map(a=>`
+    <div>
+      <strong style="color:var(--azul-800)">${escapeHtml(a.titulo)}</strong>
+      <span style="color:var(--muted)">· ${fmtDate(a.dataInicio)}</span>
+      <span class="badge badge-${a.status}">${STATUS_LABEL[a.status]||a.status}</span>
+    </div>`).join('');
+}
+
+/* ============= CRUD ============= */
+function fillCategoriaSelect(){
+  const sel=$('#fCategoria'); if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Selecione...</option>'+
+    CATEGORIAS.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  sel.value=cur;
+}
+function resetAcaoForm(){
+  $('#acaoForm').reset(); $('#editId').value='';
+  $('#formTitle').textContent='✏️ Nova Visita / Ação';
+  $('#btnSalvarAcao').textContent='💾 Salvar Ação';
+  fillCategoriaSelect();
+}
+function initAcaoForm(){
+  fillCategoriaSelect();
+  $('#acaoForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const dados = {
+      titulo:$('#fTitulo').value.trim(),
+      categoria:$('#fCategoria').value,
+      descricao:$('#fDescricao').value.trim(),
+      dataInicio:$('#fDataInicio').value,
+      dataFinal:$('#fDataFinal').value,
+      responsavel:$('#fResponsavel').value.trim(),
+      escola:$('#fEscola').value.trim(), municipio:$('#fMunicipio').value.trim(), foco:$('#fFoco').value.trim(),
+      publico:$('#fPublico').value.trim(),
+      prioridade:$('#fPrioridade').value,
+      status:$('#fStatus').value,
+      indicadores:$('#fIndicadores').value.trim(), encaminhamentos:$('#fEncaminhamentos').value.trim(),
+      retorno:$('#fRetorno').value, evidencias:$('#fEvidencias').value.trim(),
+      observacoes:$('#fObservacoes').value.trim(),
+      atualizadoEm:new Date().toISOString()
+    };
+    if(!dados.titulo||!dados.categoria||!dados.dataInicio||!dados.dataFinal||!dados.responsavel||!dados.escola){
+      toast('Preencha todos os campos obrigatórios.','error'); return;
+    }
+    if(dados.dataFinal<dados.dataInicio){ toast('Data final anterior à inicial.','error'); return; }
+    const editId=$('#editId').value;
+    const btn=$('#btnSalvarAcao'); btn.disabled=true; btn.style.opacity=.7;
+    try{
+      if(editId){ await store.update(editId,dados); toast('Ação atualizada!','success'); }
+      else{ await store.add(dados); toast('Ação cadastrada!','success'); }
+      resetAcaoForm(); navigate('listaAcoes');
+    }catch(err){
+      console.error(err); toast('Erro: '+(err.message||err),'error',6000);
+    }finally{ btn.disabled=false; btn.style.opacity=1; }
+  });
+  $('#btnCancelarAcao').addEventListener('click',()=>{ resetAcaoForm(); navigate('listaAcoes'); });
+}
+function editarAcao(id){
+  const a=state.acoes.find(x=>x.id===id); if(!a) return;
+  $('#editId').value=a.id;
+  $('#fTitulo').value=a.titulo||''; $('#fCategoria').value=a.categoria||'';
+  $('#fDescricao').value=a.descricao||'';
+  $('#fDataInicio').value=a.dataInicio||''; $('#fDataFinal').value=a.dataFinal||'';
+  $('#fResponsavel').value=a.responsavel||''; $('#fEscola').value=a.escola||''; $('#fMunicipio').value=a.municipio||''; $('#fFoco').value=a.foco||''; $('#fPublico').value=a.publico||'';
+  $('#fPrioridade').value=a.prioridade||'media'; $('#fStatus').value=a.status||'planejada';
+  $('#fIndicadores').value=a.indicadores||''; $('#fEncaminhamentos').value=a.encaminhamentos||''; $('#fRetorno').value=a.retorno||''; $('#fEvidencias').value=a.evidencias||''; $('#fObservacoes').value=a.observacoes||'';
+  $('#formTitle').textContent='✏️ Editar Visita / Ação';
+  $('#btnSalvarAcao').textContent='💾 Atualizar Ação';
+  navigate('novaAcao');
+}
+function excluirAcao(id){
+  const a=state.acoes.find(x=>x.id===id); if(!a) return;
+  confirmModal('Excluir Ação',`Excluir "${a.titulo}"? Esta ação não pode ser desfeita.`,async()=>{
+    try{ await store.remove(id); toast('Ação excluída.','success'); }
+    catch(err){ console.error(err); toast('Erro ao excluir.','error'); }
+  });
+}
+function verAcao(id){
+  const a=state.acoes.find(x=>x.id===id); if(!a) return;
+  $('#modalTitle').textContent=a.titulo;
+  $('#modalBody').innerHTML=`
+    <div style="display:grid;gap:10px;font-size:.9rem">
+      <div><strong>Categoria:</strong> ${escapeHtml(a.categoria)}</div>
+      <div><strong>Descrição:</strong> ${escapeHtml(a.descricao)||'—'}</div>
+      <div><strong>Período:</strong> ${fmtDate(a.dataInicio)} → ${fmtDate(a.dataFinal)}</div>
+      <div><strong>PEC Responsável:</strong> ${escapeHtml(a.responsavel)}</div>
+      <div><strong>Escola:</strong> ${escapeHtml(a.escola)||'—'} · ${escapeHtml(a.municipio)||'—'}</div>
+      <div><strong>Foco:</strong> ${escapeHtml(a.foco)||'—'}</div>
+      <div><strong>Indicadores:</strong> ${escapeHtml(a.indicadores)||'—'}</div>
+      <div><strong>Encaminhamentos:</strong> ${escapeHtml(a.encaminhamentos)||'—'}</div>
+      <div><strong>Retorno:</strong> ${fmtDate(a.retorno)}</div>
+      <div><strong>Participantes / Público-alvo:</strong> ${escapeHtml(a.publico)||'—'}</div>
+      <div><strong>Prioridade:</strong> ${PRIORIDADE_LABEL[a.prioridade]||a.prioridade}</div>
+      <div><strong>Status:</strong> ${STATUS_LABEL[a.status]||a.status}</div>
+      <div><strong>Evidências:</strong> ${a.evidencias?`<a href="${escapeHtml(a.evidencias)}" target="_blank" style="color:var(--primary)">${escapeHtml(a.evidencias)}</a>`:'—'}</div>
+      <div><strong>Observações:</strong> ${escapeHtml(a.observacoes)||'—'}</div>
+    </div>`;
+  const f=$('#modalFooter'); f.innerHTML='';
+  const b=document.createElement('button'); b.className='btn btn-outline'; b.textContent='Fechar';
+  b.onclick=()=>$('#genericModal').classList.add('hidden');
+  f.appendChild(b);
+  $('#genericModal').classList.remove('hidden');
+}
+
+/* ============= LISTA ============= */
+function renderLista(){ fillFilterSelects(); applyFilters(); }
+function fillFilterSelects(){
+  const anos=new Set(),meses=new Set(),cats=new Set(),resp=new Set();
+  state.acoes.forEach(a=>{
+    if(a.dataInicio){ const [y,m]=a.dataInicio.split('-'); anos.add(y); meses.add(m); }
+    if(a.categoria) cats.add(a.categoria);
+    if(a.responsavel) resp.add(a.responsavel);
+  });
+  const fA=$('#filterAno'); const cA=fA.value;
+  fA.innerHTML='<option value="">Todos</option>'+[...anos].sort().map(y=>`<option value="${y}">${y}</option>`).join('');
+  fA.value=cA;
+  const fM=$('#filterMes'); const cM=fM.value;
+  const nomes=['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  fM.innerHTML='<option value="">Todos</option>'+[...meses].sort().map(m=>`<option value="${m}">${nomes[parseInt(m)]}</option>`).join('');
+  fM.value=cM;
+  const fC=$('#filterCategoria'); const cC=fC.value;
+  fC.innerHTML='<option value="">Todas</option>'+[...cats].sort().map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  fC.value=cC;
+  const fR=$('#filterResponsavel'); const cR=fR.value;
+  fR.innerHTML='<option value="">Todos</option>'+[...resp].sort().map(r=>`<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
+  fR.value=cR;
+}
+function applyFilters(){
+  const mes=$('#filterMes').value, ano=$('#filterAno').value;
+  const cat=$('#filterCategoria').value, resp=$('#filterResponsavel').value;
+  const st=$('#filterStatus').value, pr=$('#filterPrioridade').value;
+  const search=($('#globalSearch').value||'').toLowerCase().trim();
+  const filtered = state.acoes.filter(a=>{
+    if(mes && (!a.dataInicio||a.dataInicio.split('-')[1]!==mes)) return false;
+    if(ano && (!a.dataInicio||a.dataInicio.split('-')[0]!==ano)) return false;
+    if(cat && a.categoria!==cat) return false;
+    if(resp && a.responsavel!==resp) return false;
+    if(st && a.status!==st) return false;
+    if(pr && a.prioridade!==pr) return false;
+    if(search){
+      const blob=[a.titulo,a.categoria,a.responsavel,a.escola,a.municipio,a.foco,a.descricao,a.publico,a.encaminhamentos].join(' ').toLowerCase();
+      if(!blob.includes(search)) return false;
+    }
+    return true;
+  });
+  const tbody=$('#acoesTableBody'), empty=$('#emptyAcoes');
+  if(!filtered.length){ tbody.innerHTML=''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  tbody.innerHTML = filtered.map(a=>`
+    <tr>
+      <td>${escapeHtml(a.titulo)}</td>
+      <td>${escapeHtml(a.categoria)}</td>
+      <td>${fmtDate(a.dataInicio)}</td>
+      <td>${fmtDate(a.dataFinal)}</td>
+      <td>${escapeHtml(a.responsavel)}</td>
+      <td>${escapeHtml(a.escola)||'—'}</td>
+      <td><span class="badge badge-${a.prioridade}">${PRIORIDADE_LABEL[a.prioridade]||a.prioridade}</span></td>
+      <td><span class="badge badge-${a.status}">${STATUS_LABEL[a.status]||a.status}</span></td>
+      <td>
+        <button class="btn btn-sm btn-outline" data-action="ver" data-id="${a.id}">👁️</button>
+        <button class="btn btn-sm btn-outline" data-action="edit" data-id="${a.id}">✏️</button>
+        <button class="btn btn-sm btn-outline" data-action="del" data-id="${a.id}">🗑️</button>
+      </td>
+    </tr>`).join('');
+  tbody.querySelectorAll('button[data-action]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.dataset.id, act=btn.dataset.action;
+      if(act==='ver') verAcao(id);
+      if(act==='edit') editarAcao(id);
+      if(act==='del') excluirAcao(id);
+    });
+  });
+}
+function initFilters(){
+  ['#filterMes','#filterAno','#filterCategoria','#filterResponsavel','#filterStatus','#filterPrioridade']
+    .forEach(s=>$(s).addEventListener('change',applyFilters));
+  $('#globalSearch').addEventListener('input',()=>{
+    if($('#secListaAcoes').classList.contains('active')) applyFilters();
+    else navigate('listaAcoes');
+  });
+  $('#btnLimparFiltros').addEventListener('click',()=>{
+    ['#filterMes','#filterAno','#filterCategoria','#filterResponsavel','#filterStatus','#filterPrioridade']
+      .forEach(s=>$(s).value='');
+    applyFilters();
+  });
+}
+
+/* ============= CALENDÁRIO ============= */
+function renderCalendar(){
+  const grid=$('#calendarGrid'); if(!grid) return;
+  const d=state.calDate, ano=d.getFullYear(), mes=d.getMonth();
+  const nomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  $('#calTitle').textContent=`${nomes[mes]} ${ano}`;
+  const first=new Date(ano,mes,1), last=new Date(ano,mes+1,0);
+  const dias=last.getDate(), start=first.getDay();
+  const ds=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html=ds.map(x=>`<div class="calendar-weekday">${x}</div>`).join('');
+  for(let i=0;i<start;i++) html+='<div class="calendar-day empty"></div>';
+  const hoje=new Date();
+  for(let dia=1;dia<=dias;dia++){
+    const iso=`${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+    const evs=state.acoes.filter(a=>a.dataInicio<=iso&&a.dataFinal>=iso);
+    const isT=hoje.getFullYear()===ano&&hoje.getMonth()===mes&&hoje.getDate()===dia;
+    html+=`<div class="calendar-day ${isT?'today':''}" data-date="${iso}">
+      <div style="font-weight:700;color:var(--azul-800)">${dia}</div>
+      ${evs.slice(0,2).map(e=>`<span class="day-event">${escapeHtml(e.titulo.slice(0,18))}</span>`).join('')}
+      ${evs.length>2?`<span style="font-size:.65rem;color:var(--muted)">+${evs.length-2} mais</span>`:''}
+    </div>`;
+  }
+  grid.innerHTML=html;
+  grid.querySelectorAll('.calendar-day[data-date]').forEach(el=>{
+    el.addEventListener('click',()=>abrirDia(el.dataset.date));
+  });
+  $('#calPrev').onclick=()=>{ state.calDate.setMonth(state.calDate.getMonth()-1); renderCalendar(); };
+  $('#calNext').onclick=()=>{ state.calDate.setMonth(state.calDate.getMonth()+1); renderCalendar(); };
+  $('#calHoje').onclick=()=>{ state.calDate=new Date(); renderCalendar(); };
+}
+function abrirDia(iso){
+  const evs=state.acoes.filter(a=>a.dataInicio<=iso&&a.dataFinal>=iso);
+  const [y,m,d]=iso.split('-');
+  $('#dayModalTitle').textContent=`📅 ${d}/${m}/${y}`;
+  const body=$('#dayModalBody');
+  if(!evs.length){
+    body.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">Nenhuma atividade neste dia.</p>';
+  } else {
+    body.innerHTML=evs.map(a=>`
+      <div style="background:var(--surface-2);border-left:3px solid var(--primary);border-radius:9px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-weight:700;color:var(--azul-800);margin-bottom:4px">${escapeHtml(a.titulo)}</div>
+        <div style="font-size:.82rem;color:var(--muted)">${escapeHtml(a.categoria)} · ${escapeHtml(a.responsavel)}</div>
+        <div style="margin-top:6px"><span class="badge badge-${a.status}">${STATUS_LABEL[a.status]}</span></div>
+      </div>`).join('');
+  }
+  $('#dayModal').classList.remove('hidden');
+}
+function initDayModal(){
+  $('#dayModalClose').onclick=()=>$('#dayModal').classList.add('hidden');
+  $('#dayModal').addEventListener('click',e=>{ if(e.target.id==='dayModal') $('#dayModal').classList.add('hidden'); });
+}
+
+/* ============= RELATÓRIOS ============= */
+function initReports(){
+  $$('.reports-tabs button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      $$('.reports-tabs button').forEach(x=>{ x.classList.remove('active','btn-primary'); x.classList.add('btn-outline'); });
+      b.classList.add('active','btn-primary'); b.classList.remove('btn-outline');
+      state.reportType=b.dataset.report; renderReport(state.reportType);
+    });
+  });
+  $('#btnImprimirRelatorio').addEventListener('click',()=>window.print());
+}
+function renderReport(tipo){
+  const c=$('#reportContent'); if(!c) return;
+  const hoje=new Date(); let inicio,fim,label;
+  if(tipo==='semanal'){
+    inicio=new Date(hoje); inicio.setDate(hoje.getDate()-hoje.getDay());
+    fim=new Date(inicio); fim.setDate(inicio.getDate()+6);
+    label=`Semana de ${fmtDate(toISO(inicio))} a ${fmtDate(toISO(fim))}`;
+  } else if(tipo==='mensal'){
+    inicio=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+    fim=new Date(hoje.getFullYear(),hoje.getMonth()+1,0);
+    const nomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    label=`${nomes[hoje.getMonth()]} ${hoje.getFullYear()}`;
+  } else {
+    inicio=new Date(hoje.getFullYear(),0,1);
+    fim=new Date(hoje.getFullYear(),11,31);
+    label=`Ano ${hoje.getFullYear()}`;
+  }
+  const iniISO=toISO(inicio), fimISO=toISO(fim);
+  const acoes=state.acoes.filter(a=>a.dataInicio&&a.dataInicio<=fimISO&&a.dataFinal>=iniISO);
+  const st={planejada:0,em_andamento:0,concluida:0,cancelada:0};
+  acoes.forEach(a=>{ if(st[a.status]!==undefined) st[a.status]++; });
+  const g=state.gestao||{};
+  c.innerHTML=`
+    <div style="text-align:center;margin-bottom:22px;padding-bottom:16px;border-bottom:2px solid var(--primary-soft)">
+      <h2 style="color:var(--azul-800);margin-bottom:4px">Relatório ${tipo.charAt(0).toUpperCase()+tipo.slice(1)} de Visitas e Ações Pedagógicas</h2>
+      <p style="color:var(--muted);margin:0">${label}</p>
+      ${g.nomeEscola?`<p style="margin:6px 0 0;font-weight:600">${escapeHtml(g.nomeEscola)}</p>`:''}
+      ${g.diretoria?`<p style="color:var(--muted);font-size:.85rem;margin:2px 0">${escapeHtml(g.diretoria)}</p>`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+      ${['planejada','em_andamento','concluida','cancelada'].map(s=>`
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px 16px">
+          <div style="font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase">${STATUS_LABEL[s]}</div>
+          <div style="font-size:1.6rem;font-weight:800;color:var(--azul-800)">${st[s]}</div>
+        </div>`).join('')}
+    </div>
+    <h3 style="color:var(--azul-800);margin-top:20px">Detalhamento das Ações (${acoes.length})</h3>
+    ${acoes.length?`
+      <table>
+        <thead><tr><th>Título</th><th>Categoria</th><th>Período</th><th>PEC Responsável</th><th>Status</th></tr></thead>
+        <tbody>${acoes.map(a=>`
+          <tr>
+            <td>${escapeHtml(a.titulo)}</td>
+            <td>${escapeHtml(a.categoria)}</td>
+            <td>${fmtDate(a.dataInicio)} → ${fmtDate(a.dataFinal)}</td>
+            <td>${escapeHtml(a.responsavel)}</td>
+            <td><span class="badge badge-${a.status}">${STATUS_LABEL[a.status]}</span></td>
+          </tr>`).join('')}</tbody>
+      </table>`:'<p style="color:var(--muted);text-align:center;padding:20px">Nenhuma ação no período.</p>'}
+    <div style="margin-top:30px;padding-top:16px;border-top:1px dashed var(--border);font-size:.82rem;color:var(--muted);text-align:center">
+      ${g.diretor?`Coordenador(a) Geral: ${escapeHtml(g.diretor)} · `:''}
+      ${g.cgp?`Coordenador(a) da Equipe Curricular: ${escapeHtml(g.cgp)} · `:''}
+      Gerado em ${new Date().toLocaleString('pt-BR')}
+    </div>`;
+}
+
+/* ============= GESTÃO ============= */
+function fillGestaoForm(){
+  const g=state.gestao||{};
+  $('#gNomeEscola').value=g.nomeEscola||'';
+  $('#gDiretor').value=g.diretor||'';
+  $('#gCoordenador(a) da Equipe Curricular').value=g.cgp||'';
+  $('#gAnoLetivo').value=g.anoLetivo||String(new Date().getFullYear());
+  $('#gDiretoria').value=g.diretoria||'';
+}
+function initGestao(){
+  $('#gestaoForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const dados={
+      nomeEscola:$('#gNomeEscola').value.trim(),
+      diretor:$('#gDiretor').value.trim(),
+      cgp:$('#gCoordenador(a) da Equipe Curricular').value.trim(),
+      anoLetivo:$('#gAnoLetivo').value.trim(),
+      diretoria:$('#gDiretoria').value.trim(),
+      atualizadoEm:new Date().toISOString()
+    };
+    try{ await store.saveGestao(dados); state.gestao=dados; toast('Informações salvas!','success'); renderReport(state.reportType); }
+    catch(err){ console.error(err); toast('Erro ao salvar.','error'); }
+  });
+}
+
+/* ============= CONFIG ============= */
+function initConfig(){
+  $('#btnRecarregar').addEventListener('click',()=>{
+    if(state.mode==='cloud'){ setConn('syncing','Recarregando...'); subscribeAcoes(); subscribeGestao(); }
+    else { loadLocalData(); refreshAll(); }
+    toast('Recarregando dados...','info');
+  });
+  $('#btnExportar').addEventListener('click',()=>{
+    const dados={versao:'2.0',exportadoEm:new Date().toISOString(),acoes:state.acoes,gestao:state.gestao};
+    const blob=new Blob([JSON.stringify(dados,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=`pec-backup-${todayISO()}.json`; a.click();
+    URL.revokeObjectURL(url);
+    toast('Backup exportado!','success');
+  });
+  $('#btnImportar').addEventListener('click',()=>$('#importFile').click());
+  $('#importFile').addEventListener('change',e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+      try{
+        const dados=JSON.parse(ev.target.result);
+        if(!Array.isArray(dados.acoes)) throw new Error('Formato inválido');
+        confirmModal('Importar Backup',`Serão adicionadas ${dados.acoes.length} ações. Continuar?`,async()=>{
+          try{
+            await store.importarAcoes(dados.acoes);
+            if(dados.gestao){ await store.saveGestao(dados.gestao); state.gestao=dados.gestao; }
+            toast('Backup importado!','success');
+          }catch(err){ console.error(err); toast('Erro ao importar.','error'); }
+        });
+      }catch(err){ toast('Arquivo inválido.','error'); }
+    };
+    reader.readAsText(file); e.target.value='';
+  });
+  $('#btnLimparTudo').addEventListener('click',()=>{
+    confirmModal('⚠️ Apagar todas as ações','Tem certeza absoluta? Todos os registros serão apagados permanentemente.',async()=>{
+      try{ await store.clearAll(); toast('Todas as ações foram apagadas.','success'); }
+      catch(err){ console.error(err); toast('Erro ao apagar.','error'); }
+    });
+  });
+}
+
+/* ============= NOTIFICAÇÕES ============= */
+function updateNotifs(){
+  const hoje=todayISO();
+  const atras=state.acoes.filter(a=>a.status!=='concluida'&&a.status!=='cancelada'&&a.dataFinal&&a.dataFinal<hoje);
+  $('#notifBadge').textContent=atras.length;
+  const list=$('#notifList');
+  if(!atras.length){
+    list.innerHTML='<p style="color:var(--muted);text-align:center;padding:12px;font-size:.85rem">Nenhuma notificação.</p>';
+  } else {
+    list.innerHTML=atras.map(a=>`
+      <div>
+        <strong>⚠️ Ação atrasada:</strong> ${escapeHtml(a.titulo)}<br>
+        <span style="font-size:.78rem;color:var(--muted)">Venceu em ${fmtDate(a.dataFinal)}</span>
+      </div>`).join('');
+  }
+}
+
+/* ============= MODAL / SIDEBAR / NOTIF ============= */
+function initGenericModal(){
+  $('#modalClose').addEventListener('click',()=>$('#genericModal').classList.add('hidden'));
+  $('#genericModal').addEventListener('click',e=>{ if(e.target.id==='genericModal') $('#genericModal').classList.add('hidden'); });
+}
+function initSidebarToggle(){
+  $('#sidebarToggle').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+  document.addEventListener('click',e=>{
+    if(window.innerWidth>900) return;
+    if(e.target.closest('#sidebar')||e.target.closest('#sidebarToggle')) return;
+    $('#sidebar').classList.remove('open');
+  });
+}
+function initNotifToggle(){
+  $('#notifBell').addEventListener('click',e=>{ e.stopPropagation(); $('#notifPanel').classList.toggle('hidden'); });
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#notifPanel')&&!e.target.closest('#notifBell')) $('#notifPanel').classList.add('hidden');
+  });
+}
+
+function refreshAll(){
+  renderDashboard();
+  renderLista();
+  renderCalendar();
+  renderReport(state.reportType);
+  updateNotifs();
+}
+
+
+/* ============= COMPLEMENTOS PEC: RELATORIO INDIVIDUAL E CSV ============= */
+function csvCell(v){ return '"'+String(v??'').replace(/"/g,'""').replace(/\r?\n/g,' ')+'"'; }
+function downloadText(name,text,type){ const b=new Blob([text],{type:type||'text/plain;charset=utf-8'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),500); }
+function selectedReportActions(){
+  const pec=$('#reportPEC')?.value||'', escola=$('#reportEscola')?.value||'', ini=$('#reportInicio')?.value||'', fim=$('#reportFim')?.value||'';
+  return state.acoes.filter(a=>(!pec||a.responsavel===pec)&&(!escola||a.escola===escola)&&(!ini||a.dataFinal>=ini)&&(!fim||a.dataInicio<=fim));
+}
+function fillReportFilters(){
+  const p=$('#reportPEC'), e=$('#reportEscola'); if(!p||!e)return; const pv=p.value,ev=e.value;
+  const ps=[...new Set(state.acoes.map(a=>a.responsavel).filter(Boolean))].sort(); const es=[...new Set(state.acoes.map(a=>a.escola).filter(Boolean))].sort();
+  p.innerHTML='<option value="">Todos os PECs</option>'+ps.map(x=>`<option>${escapeHtml(x)}</option>`).join(''); p.value=pv;
+  e.innerHTML='<option value="">Todas as escolas</option>'+es.map(x=>`<option>${escapeHtml(x)}</option>`).join(''); e.value=ev;
+}
+function exportRowsCSV(rows,name){const cols=['titulo','categoria','descricao','dataInicio','dataFinal','responsavel','escola','municipio','foco','publico','prioridade','status','indicadores','encaminhamentos','retorno','evidencias','observacoes']; const csv='\ufeff'+cols.join(';')+'\n'+rows.map(r=>cols.map(c=>csvCell(r[c])).join(';')).join('\n');downloadText(name,csv,'text/csv;charset=utf-8');}
+function parseCSV(text){
+  const rows=[];let row=[],cell='',q=false; for(let i=0;i<text.length;i++){const ch=text[i],nx=text[i+1];if(ch==='"'&&q&&nx==='"'){cell+='"';i++;}else if(ch==='"'){q=!q;}else if(ch===';'&&!q){row.push(cell);cell='';}else if((ch==='\n'||ch==='\r')&&!q){if(ch==='\r'&&nx==='\n')i++;row.push(cell);cell='';if(row.some(x=>x.trim()))rows.push(row);row=[];}else cell+=ch;} if(cell||row.length){row.push(cell);rows.push(row);} if(rows.length<2)return[]; const h=rows[0].map(x=>x.trim());return rows.slice(1).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]||'']))); }
+function initPECComplements(){
+  ['#reportPEC','#reportEscola','#reportInicio','#reportFim'].forEach(s=>$(s)?.addEventListener('change',()=>renderReport(state.reportType)));
+  $('#btnLimparRelatorio')?.addEventListener('click',()=>{['#reportPEC','#reportEscola','#reportInicio','#reportFim'].forEach(s=>$(s).value='');renderReport(state.reportType);});
+  $('#btnExportarCSV')?.addEventListener('click',()=>exportRowsCSV(state.acoes,`agenda-pec-${todayISO()}.csv`));
+  $('#btnExportarRelatorioCSV')?.addEventListener('click',()=>exportRowsCSV(selectedReportActions(),`relatorio-pec-${todayISO()}.csv`));
+  $('#btnImportarCSV')?.addEventListener('click',()=>$('#importCSVFile').click());
+  $('#importCSVFile')?.addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async ev=>{try{const rows=parseCSV(ev.target.result).filter(x=>x.titulo&&x.responsavel);await store.importarAcoes(rows);toast(rows.length+' registros importados do CSV.','success');}catch(err){toast('Falha ao importar CSV.','error')}};r.readAsText(f,'utf-8');e.target.value='';});
+}
+const originalRenderReport=renderReport;
+renderReport=function(tipo){
+  originalRenderReport(tipo); fillReportFilters(); const box=$('#reportContent'); if(!box)return;
+  const pec=$('#reportPEC')?.value||'', escola=$('#reportEscola')?.value||'', ini=$('#reportInicio')?.value||'', fim=$('#reportFim')?.value||'';
+  if(!(pec||escola||ini||fim))return;
+  const rows=selectedReportActions(), concl=rows.filter(a=>a.status==='concluida').length, escolas=new Set(rows.map(a=>a.escola).filter(Boolean)).size;
+  box.innerHTML=`<div style="text-align:center;border-bottom:3px solid #0A4179;padding-bottom:15px"><h2>Relatório Individual de Acompanhamento PEC</h2><p>${pec?'<strong>PEC:</strong> '+escapeHtml(pec):'Todos os PECs'}${escola?' · <strong>Escola:</strong> '+escapeHtml(escola):''}</p><p>${ini||fim?'Período: '+fmtDate(ini)+' a '+fmtDate(fim):'Período conforme seleção semanal/mensal/anual'}</p></div><div class="cards-grid" style="margin-top:16px"><div><strong>Registros</strong><div style="font-size:1.8rem;font-weight:800">${rows.length}</div></div><div><strong>Concluídos</strong><div style="font-size:1.8rem;font-weight:800">${concl}</div></div><div><strong>Escolas acompanhadas</strong><div style="font-size:1.8rem;font-weight:800">${escolas}</div></div></div>${rows.length?`<table><thead><tr><th>Data</th><th>Escola</th><th>Ação</th><th>Foco</th><th>Encaminhamentos</th><th>Retorno</th><th>Status</th></tr></thead><tbody>${rows.sort((a,b)=>(a.dataInicio||'').localeCompare(b.dataInicio||'')).map(a=>`<tr><td>${fmtDate(a.dataInicio)}</td><td>${escapeHtml(a.escola)||'—'}</td><td>${escapeHtml(a.titulo)}</td><td>${escapeHtml(a.foco)||'—'}</td><td>${escapeHtml(a.encaminhamentos)||'—'}</td><td>${fmtDate(a.retorno)}</td><td>${STATUS_LABEL[a.status]||a.status}</td></tr>`).join('')}</tbody></table>`:'<p class="empty-state">Nenhum registro nos filtros selecionados.</p>'}<div style="margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:50px;text-align:center"><div>________________________________<br>PEC responsável</div><div>________________________________<br>CEC / Coordenação</div></div>`;
+}
+
+/* ============= INIT ============= */
+function initApp(){
+  state.calDate=new Date(); state.reportType='semanal';
+  initNav(); initTheme(); initSidebarToggle(); initNotifToggle();
+  initAcaoForm(); initFilters(); initReports(); initGestao(); initConfig(); initPECComplements();
+  initGenericModal(); initDayModal();
+  initFirebase();
+  setInterval(updateNotifs,60000);
+}
+document.addEventListener('DOMContentLoaded',initApp);
+})();
+</script>
+</body>
+</html>
 
